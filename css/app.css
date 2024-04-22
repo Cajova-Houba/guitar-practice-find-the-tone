@@ -1,0 +1,15 @@
+.tone-to-guess {
+    font-family: 'ToneFont', sans-serif;
+    font-size: 120px;
+}
+
+.fretboard {
+    display: flex;
+    justify-content: center;
+    width: stretch;
+    height: 180px;
+}
+
+.fret-0 {
+    border-right: 5px solid black !important;
+}
