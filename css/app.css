@@ -10,6 +10,19 @@
     height: 180px;
 }
 
+.hidden {
+    visibility: hidden;
+}
+
+.fret {
+    width: 7.69%
+}
+
 .fret-0 {
+    border: 1px solid #dee2e6;;
     border-right: 5px solid black !important;
+}
+
+.fret-marker {
+    background-color: rgba(0, 0, 0, 0.1);
 }
