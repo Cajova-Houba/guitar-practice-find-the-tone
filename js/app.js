@@ -33,6 +33,34 @@ const GUESS_TIMER_ELEMENT_ID = "guess-timer";
 const START_STOP_BUTTON_ELEMENT_ID = "start-stop-button";
 
 /**
+ * Class that holds statistics about player's performance.
+ * 
+ * Stats are held in a dictionary where key is a tone and value is a list of times in milliseconds
+ * that player needed to guess that tone.
+ */
+class Statistics {
+
+    constructor() {
+        this.statistics = {};
+    }
+
+    addGuessTime(tone, timeMs) {
+        if (this.statistics[tone] === undefined) {
+            this.statistics[tone] = [];
+        }
+        this.statistics[tone].push(timeMs);
+    }
+
+    print() {
+        console.log(this.statistics);
+    }
+
+    reset() {
+        this.statistics = {};
+    }
+}
+
+/**
  * Which tone player should guess.
  */
 var toneToGuess = null;
@@ -53,6 +81,12 @@ var guessTimer = null;
  */
 var isGameRunning = false;
 
+/**
+ * Statistics about player's performance.
+ */
+var statistics = new Statistics();
+
+
 function generateTone() {
     toneToGuess = TONES[Math.floor(Math.random() * TONES.length)];
     console.log("Tone to guess: " + toneToGuess);
@@ -64,6 +98,7 @@ function generateTone() {
  */ 
 function guess(string, fret) {
     if (checkGuess(string, fret)) {
+        statistics.addGuessTime(toneToGuess, guessTimeMs);
         resetGuessTime();
         guessCount++;
         updateGuessCounterDisplay();
@@ -155,10 +190,12 @@ function stopGame() {
     isGameRunning = false;
     clearInterval(guessTimer);
     switchStartStopButtonDisplay();
+    statistics.print();
 }
 
 function startGame() {
     isGameRunning = true;
+    statistics.reset();
     generateTone();
     updateGuessCounterDisplay();
     resetGuessTime();
