@@ -22,6 +22,5 @@ jobs:
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_ssh_key
           chmod 600 ~/.ssh/deploy_ssh_key
           scp -i ~/.ssh/deploy_ssh_key -o StrictHostKeyChecking=no $TAR_ARCHIVE_NAME ${{ secrets.DEPLOY_SSH_USERNAME }}@${{ vars.TARGET_HOST }}:${{ vars.DEPLOY_DIR }}/$TAR_ARCHIVE_NAME
-          
-        # ssh ${{ USERNAME }}@${{ TARGET_HOST }} "cd ${{ deploy_dir }} && ./deploy.sh"
+          ssh -i ~/.ssh/deploy_ssh_key ${{ secrets.DEPLOY_SSH_USERNAME }}@${{ vars.TARGET_HOST }} "cd ${{ vars.DEPLOY_DIR }} && ./deploy-find-the-tone.sh"
           
