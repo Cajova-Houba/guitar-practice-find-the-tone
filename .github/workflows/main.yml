@@ -19,7 +19,7 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_ssh_key
           chmod 600 ~/.ssh/deploy_ssh_key
-          scp -i ~/.ssh/deploy_ssh_key -o StrictHostKeyChecking=no find-the-tone.tar.gz ${{ secrets.USERNMAE }}@${{ vars.TARGET_HOST }}:${{ vars.DEPLOY_DIR }}/find-the-tone.gz
+          scp -i ~/.ssh/deploy_ssh_key -o StrictHostKeyChecking=no find-the-tone.tar.gz ${{ secrets.DEPLOY_SSH_USERNAME }}@${{ vars.TARGET_HOST }}:${{ vars.DEPLOY_DIR }}/find-the-tone.gz
           
         # ssh ${{ USERNAME }}@${{ TARGET_HOST }} "cd ${{ deploy_dir }} && ./deploy.sh"
           
