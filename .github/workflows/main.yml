@@ -10,6 +10,7 @@ jobs:
     steps:
       - name: Create tar
         run: |
+          ls -al
           tar --exclude='./.github' --exclude='./readme.md' -czv find-the-tone.tar.gz ./*
       - name: Copy tar and run deploy script
         run: | 
