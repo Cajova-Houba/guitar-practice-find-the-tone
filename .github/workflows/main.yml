@@ -16,7 +16,10 @@ jobs:
           tar --exclude='./.github' --exclude='./readme.md' -czvf find-the-tone.tar.gz ./*
       - name: Copy tar and run deploy script
         run: | 
-          scp -i ${{ secrets.DEPLOY_SSH_KEY }} -o StrictHostKeyChecking=no find-the-tone.tar.gz ${{ secrets.USERNMAE }}@${{ vars.TARGET_HOST }}:${{ vars.DEPLOY_DIR }}/find-the-tone.gz
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_ssh_key
+          chmod 600 ~/.ssh/deploy_ssh_key
+          scp -i ~/.ssh/deploy_ssh_key -o StrictHostKeyChecking=no find-the-tone.tar.gz ${{ secrets.USERNMAE }}@${{ vars.TARGET_HOST }}:${{ vars.DEPLOY_DIR }}/find-the-tone.gz
           
         # ssh ${{ USERNAME }}@${{ TARGET_HOST }} "cd ${{ deploy_dir }} && ./deploy.sh"
           
