@@ -8,10 +8,12 @@ jobs:
     name: Deploy to my private server
     runs-on: ubuntu-22.04
     steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
       - name: Create tar
         run: |
           ls -al
-          tar --exclude='./.github' --exclude='./readme.md' -czv find-the-tone.tar.gz ./*
+          tar --exclude='./.github' --exclude='./readme.md' -czvf find-the-tone.tar.gz ./*
       - name: Copy tar and run deploy script
         run: | 
           scp website.tar.gz ${{ secrets.USERNMAE }}@${{ vars.TARGET_HOST }}:${{ vars.DEPLOY_DIR }}/find-the-tone.gz
