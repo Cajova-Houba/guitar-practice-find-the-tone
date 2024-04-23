@@ -31,6 +31,7 @@ const FRETBOARD_ELEMENT_ID = "fretboard-table";
 const GUESS_COUNTER_ELEMENT_ID = "guess-counter";
 const GUESS_TIMER_ELEMENT_ID = "guess-timer";
 const START_STOP_BUTTON_ELEMENT_ID = "start-stop-button";
+const STATISTICS_DISPLAY_ELEMENT_ID = "statistics-display";
 
 /**
  * Class that holds statistics about player's performance.
@@ -49,6 +50,17 @@ class Statistics {
             this.statistics[tone] = [];
         }
         this.statistics[tone].push(timeMs);
+    }
+
+    getAverages() {
+        var averages = {};
+        for (var tone in this.statistics) {
+            var times = this.statistics[tone];
+            var sum = times.reduce((a, b) => a + b, 0);
+            var avg = sum / times.length;
+            averages[tone] = avg;
+        }
+        return averages;
     }
 
     print() {
@@ -102,6 +114,7 @@ function guess(string, fret) {
         resetGuessTime();
         guessCount++;
         updateGuessCounterDisplay();
+        updateStatisticsDisplay()
         generateTone();
         console.log("Correct guess!");
     } else {
@@ -133,6 +146,30 @@ function updateGuessCounterDisplay() {
 
 function updateGuessTimerDisplay() {
     document.getElementById(GUESS_TIMER_ELEMENT_ID).innerText = guessTimeMs;
+}
+
+function updateStatisticsDisplay() {
+    var averages = statistics.getAverages();
+    var displayElement = document.getElementById(STATISTICS_DISPLAY_ELEMENT_ID);
+    displayElement.innerHTML = "";
+    var tableElement = document.createElement("table");
+    for (var toneIndex in TONES) {
+        var tone = TONES[toneIndex];
+        if (tone in averages) {
+            var average = averages[tone];
+            var rowElement = document.createElement("tr");
+            var toneElement = document.createElement("td");
+            var averageElement = document.createElement("td");
+            toneElement.innerText = tone;
+            averageElement.innerText = average.toFixed(2) + "ms";
+            rowElement.appendChild(toneElement);
+            rowElement.appendChild(averageElement);
+            tableElement.appendChild(rowElement);
+        }
+    }
+
+    displayElement.appendChild(tableElement);
+
 }
 
 function switchStartStopButtonDisplay() {
