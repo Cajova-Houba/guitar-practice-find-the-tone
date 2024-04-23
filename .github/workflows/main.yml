@@ -1,0 +1,19 @@
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to my private server
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Create tar
+        run: |
+          tar --exclude='readme.md' --exclude='./.github' -czf find-the-tone.tar.gz 
+      - name: Copy tar and run deploy script
+        run: | 
+          scp website.tar.gz ${{ USERNMAE }}@${{ TARGET_HOST }}:${{ DEPLOY_DIR }}/find-the-tone.gz
+          
+        # ssh ${{ USERNAME }}@${{ TARGET_HOST }} "cd ${{ deploy_dir }} && ./deploy.sh"
+          
