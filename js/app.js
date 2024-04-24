@@ -5,6 +5,8 @@ const D_STRING = 3;
 const A_STRING = 4;
 const LOW_E_STRING = 5;
 
+const LAST_FRET_INDEX = 12;
+
 /**
  * What tones can be guessed. Items of this array are string and are used
  * as a keys to some following dictionaries.
@@ -42,20 +44,35 @@ const STATISTICS_DISPLAY_ELEMENT_ID = "statistics-display";
 class Statistics {
 
     constructor() {
-        this.statistics = {};
+        this.correctGuessTimes = {};
+        this.incorrectGuesses = {};
+
+        // heatmap of correct guesses, [0] = string 0 fret 0, [1] = string 0 fret 1, ... [77] = string 5 fret 12
+        this.correctGuessHeatmap = new Array((LOW_E_STRING + 1) * (LAST_FRET_INDEX + 1)).fill(0);
     }
 
-    addGuessTime(tone, timeMs) {
-        if (this.statistics[tone] === undefined) {
-            this.statistics[tone] = [];
+    addIncorrectGuess(tone) {
+        if (this.incorrectGuesses[tone] === undefined) {
+            this.incorrectGuesses[tone] = 0;
         }
-        this.statistics[tone].push(timeMs);
+        this.incorrectGuesses[tone]++;
+    }
+
+    addGuessTime(tone, timeMs, string, fret) {
+        if (this.correctGuessTimes[tone] === undefined) {
+            this.correctGuessTimes[tone] = [];
+        }
+
+        const fretboardIndex = this.getFretboardIndex(string, fret);
+        console.log("Adding correct guess for tone " + tone + " at index " + fretboardIndex);
+        this.correctGuessHeatmap[fretboardIndex]++;
+        this.correctGuessTimes[tone].push(timeMs);
     }
 
     getAverages() {
         var averages = {};
-        for (var tone in this.statistics) {
-            var times = this.statistics[tone];
+        for (var tone in this.correctGuessTimes) {
+            var times = this.correctGuessTimes[tone];
             var sum = times.reduce((a, b) => a + b, 0);
             var avg = sum / times.length;
             averages[tone] = avg;
@@ -63,12 +80,16 @@ class Statistics {
         return averages;
     }
 
+    getFretboardIndex(string, fret) {
+        return string * (LAST_FRET_INDEX+1) + fret;
+    }
+
     print() {
-        console.log(this.statistics);
+        console.log(this.correctGuessTimes);
     }
 
     reset() {
-        this.statistics = {};
+        this.correctGuessTimes = {};
     }
 }
 
@@ -136,7 +157,7 @@ function animateFret(string, fret, animationName) {
 function guess(string, fret) {
     if (checkGuess(string, fret)) {
         animateFret(string, fret, "correct-guess");
-        statistics.addGuessTime(toneToGuess, guessTimeMs);
+        statistics.addGuessTime(toneToGuess, guessTimeMs, string, fret);
         resetGuessTime();
         guessCount++;
         updateGuessCounterDisplay();
@@ -234,7 +255,7 @@ function generateFretboard() {
             fretElement.addEventListener("click", function() {
                 var string = this.getAttribute("data-string");
                 var fret = this.getAttribute("data-fret");
-                guess(string, fret);
+                guess(parseInt(string), parseInt(fret));
             });
             stringElement.appendChild(fretElement);
         }
