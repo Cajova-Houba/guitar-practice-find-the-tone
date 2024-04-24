@@ -98,6 +98,13 @@ var isGameRunning = false;
  */
 var statistics = new Statistics();
 
+function getFretElementId(string, fret) {
+    return "fret-" + string + "-" + fret;
+}
+
+function isFretMarker(fret) {
+    return fret == 3 || fret == 5 || fret == 7 || fret == 9 || fret == 12;
+}
 
 function generateTone() {
     toneToGuess = TONES[Math.floor(Math.random() * TONES.length)];
@@ -105,11 +112,30 @@ function generateTone() {
     document.getElementById(TONE_TO_GUESS_ELEMENT_ID).innerText = toneToGuess;
 }
 
+function animateFret(string, fret, animationName) {
+    var fretElement = document.getElementById(getFretElementId(string, fret));  
+
+    // use animation with correct background color if fret is a marker
+    if (isFretMarker(fret)) {
+        fretElement.style.animation=animationName + "-marker 1s";
+    } else {
+        fretElement.style.animation=animationName + " 1s";
+    }
+    fretElement.style.animationTimingFunction="ease-in";
+
+    // remove animation after 1 second
+    setTimeout(function() {
+        fretElement.style.animation="";
+        fretElement.style.animationTimingFunction="";
+    }, 1000);
+}
+
 /**
  * Check if player's guess is correct, display result and generate new tone to guess.
  */ 
 function guess(string, fret) {
     if (checkGuess(string, fret)) {
+        animateFret(string, fret, "correct-guess");
         statistics.addGuessTime(toneToGuess, guessTimeMs);
         resetGuessTime();
         guessCount++;
@@ -118,7 +144,8 @@ function guess(string, fret) {
         generateTone();
         console.log("Correct guess!");
     } else {
-        console.log("Incorrect guess. Tone on string " + string + " and fret " + fret + " is " + toneOnFret);
+        animateFret(string, fret, "incorrect-guess");
+        console.log("Incorrect guess. Tone on string " + string + " and fret " + fret + " is " + toneToGuess);
     }
 }
 
@@ -188,7 +215,8 @@ function generateFretboard() {
         var stringElement = document.createElement("tr");
         for (var fret = 0; fret < 13; fret++) {
             var fretElement = document.createElement("td");
-
+            
+            fretElement.id = getFretElementId(string, fret);
             fretElement.classList.add("fret");
 
             if (fret === 0) {
@@ -197,7 +225,7 @@ function generateFretboard() {
                 fretElement.classList.add("border");
             }
 
-            if (fret == 3 || fret == 5 || fret == 7 || fret == 9 || fret == 12) {
+            if (isFretMarker(fret)) {
                 fretElement.classList.add("fret-marker");
             }
 

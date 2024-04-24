@@ -1,0 +1,47 @@
+@keyframes correct-guess {
+    from {
+        background-color: white;
+    }
+    30% {
+        background-color: green;
+    }
+    to {
+        background-color: white;
+    }
+}
+
+@keyframes correct-guess-marker {
+    from {
+        background-color: rgba(0, 0, 0, 0.1);
+    }
+    30% {
+        background-color: green;
+    }
+    to {
+        background-color: rgba(0, 0, 0, 0.1);
+    }
+}
+
+@keyframes incorrect-guess {
+    from {
+        background-color: white;
+    }
+    30% {
+        background-color: red;
+    }
+    to {
+        background-color: white;
+    }   
+}
+
+@keyframes incorrect-guess-marker {
+    from {
+        background-color: rgba(0, 0, 0, 0.1);
+    }
+    30% {
+        background-color: red;
+    }
+    to {
+        background-color: rgba(0, 0, 0, 0.1);
+    }
+}
