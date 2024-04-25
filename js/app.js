@@ -58,16 +58,15 @@ class Statistics {
         this.incorrectGuesses[tone]++;
     }
 
-    addGuessTime(tone, guessStartTimeMs, string, fret) {
+    addGuessTime(tone, guessTime, string, fret) {
         if (this.correctGuessTimes[tone] === undefined) {
             this.correctGuessTimes[tone] = [];
         }
 
-        const guessTimeMs = new Date().getTime() - guessStartTimeMs;
         const fretboardIndex = this.getFretboardIndex(string, fret);
         console.log("Adding correct guess for tone " + tone + " at index " + fretboardIndex);
         this.correctGuessHeatmap[fretboardIndex]++;
-        this.correctGuessTimes[tone].push(guessTimeMs);
+        this.correctGuessTimes[tone].push(guessTime);
     }
 
     getAverages() {
@@ -95,6 +94,27 @@ class Statistics {
 }
 
 /**
+ * Class that holds information about player's guess time.
+ */
+class GuessTime {
+    constructor() {
+        /**
+         * Timestamp of when a new tone was generated. Used when evaluating 
+         * how long it took player to guess the tone.
+         */
+        this.startTime = new Date().getTime();
+    }
+
+    reset() {
+        this.startTime = new Date().getTime();
+    }
+
+    getElapsedTime() {
+        return new Date().getTime() - this.startTime;
+    }
+}
+
+/**
  * Which tone player should guess.
  */
 var toneToGuess = null;
@@ -105,10 +125,9 @@ var toneToGuess = null;
 var guessCount = 0;
 
 /**
- * Timestamp of when a new tone was generated. Used when evaluating 
- * how long it took player to guess the tone.
+ * This object holds information about player's guess time.
  */
-var guessStartTime = 0;
+var guessTime = new GuessTime();
 var guessTimer = null;
 
 /**
@@ -159,8 +178,8 @@ function animateFret(string, fret, animationName) {
 function guess(string, fret) {
     if (checkGuess(string, fret)) {
         animateFret(string, fret, "correct-guess");
-        statistics.addGuessTime(toneToGuess, guessStartTime, string, fret);
-        resetGuessTime();
+        statistics.addGuessTime(toneToGuess, guessTime.getElapsedTime(), string, fret);
+        guessTime.reset();
         guessCount++;
         updateGuessCounterDisplay();
         updateStatisticsDisplay()
@@ -181,10 +200,6 @@ function checkGuess(string, fret) {
     return toneOnFret === toneToGuess;
 }
 
-function resetGuessTime() {
-    guessStartTime = new Date().getTime();
-}
-
 function timer() {
     updateGuessTimerDisplay();
 }
@@ -194,8 +209,7 @@ function updateGuessCounterDisplay() {
 }
 
 function updateGuessTimerDisplay() {
-    const guessTimeMs = new Date().getTime() - guessStartTime;
-    document.getElementById(GUESS_TIMER_ELEMENT_ID).innerText = guessTimeMs;
+    document.getElementById(GUESS_TIMER_ELEMENT_ID).innerText = guessTime.getElapsedTime();
 }
 
 function updateStatisticsDisplay() {
@@ -286,7 +300,7 @@ function startGame() {
     statistics.reset();
     generateTone();
     updateGuessCounterDisplay();
-    resetGuessTime();
+    guessTime.reset();
     guessTimer = setInterval(timer, 1);
     switchStartStopButtonDisplay();
 }
