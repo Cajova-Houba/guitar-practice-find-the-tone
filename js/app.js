@@ -58,15 +58,16 @@ class Statistics {
         this.incorrectGuesses[tone]++;
     }
 
-    addGuessTime(tone, timeMs, string, fret) {
+    addGuessTime(tone, guessStartTimeMs, string, fret) {
         if (this.correctGuessTimes[tone] === undefined) {
             this.correctGuessTimes[tone] = [];
         }
 
+        const guessTimeMs = new Date().getTime() - guessStartTimeMs;
         const fretboardIndex = this.getFretboardIndex(string, fret);
         console.log("Adding correct guess for tone " + tone + " at index " + fretboardIndex);
         this.correctGuessHeatmap[fretboardIndex]++;
-        this.correctGuessTimes[tone].push(timeMs);
+        this.correctGuessTimes[tone].push(guessTimeMs);
     }
 
     getAverages() {
@@ -104,9 +105,10 @@ var toneToGuess = null;
 var guessCount = 0;
 
 /**
- * How long it took player to make a correct guess. In milliseconds.
+ * Timestamp of when a new tone was generated. Used when evaluating 
+ * how long it took player to guess the tone.
  */
-var guessTimeMs = 0;
+var guessStartTime = 0;
 var guessTimer = null;
 
 /**
@@ -157,7 +159,7 @@ function animateFret(string, fret, animationName) {
 function guess(string, fret) {
     if (checkGuess(string, fret)) {
         animateFret(string, fret, "correct-guess");
-        statistics.addGuessTime(toneToGuess, guessTimeMs, string, fret);
+        statistics.addGuessTime(toneToGuess, guessStartTime, string, fret);
         resetGuessTime();
         guessCount++;
         updateGuessCounterDisplay();
@@ -180,11 +182,10 @@ function checkGuess(string, fret) {
 }
 
 function resetGuessTime() {
-    guessTimeMs = 0;
+    guessStartTime = new Date().getTime();
 }
 
 function timer() {
-    guessTimeMs += 1;
     updateGuessTimerDisplay();
 }
 
@@ -193,6 +194,7 @@ function updateGuessCounterDisplay() {
 }
 
 function updateGuessTimerDisplay() {
+    const guessTimeMs = new Date().getTime() - guessStartTime;
     document.getElementById(GUESS_TIMER_ELEMENT_ID).innerText = guessTimeMs;
 }
 
