@@ -16,22 +16,26 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </head>
 <body>
-    <!-- controls -->
-    <div class="row border-bottom pb-3">
-        <div class="col-md-5"></div>
-        <div class="col-md-2 text-center">
+
+    <!-- display the tone to guess and controls -->
+    <div class="row border-bottom mb-3 ms-2">
+        <div class="col-md-2 border-end mt-2">
             <input type="button" id="start-stop-button" class="btn btn-primary" value="Start" onclick="startStopGame()">
         </div>
-        <div class="col-md-5"></div>
-    </div>
-
-    <!-- display the tone to guess -->
-    <div class="row border-bottom pb-3">
-        <div class="col-md-5 text-end">
+        <div class="col-md-3 text-end">
             <span id="guess-timer">00</span> ms
         </div>
         <div class="col-md-2 text-center">
-            <span id="tone-to-guess" class="tone-to-guess">E</span>
+            <div class="row">
+                <div class="col-12">
+                    Guess the tone...
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <span id="tone-to-guess" class="tone-to-guess">E</span>
+                </div>
+            </div>
         </div>
         <div class="col-md-5">
             Tones guessed <span id="guess-counter"></span>
@@ -40,22 +44,16 @@
 
     <!-- display fretboard -->
     <div class="row border-bottom pt-3 pb-3">
-        <div class="col-md-2"></div>
-        <div class="col-md-8">
+        <div class="col-md-1"></div>
+        <div class="col-md-10">
             <div class="fretboard">
                 <table id="fretboard-table" class="table">
                 </table>
             </div>
         </div>
-        <div class="col-md-2"></div>
+        <div class="col-md-1"></div>
     </div>
-
-    <div class="row pt-3">
-        <div class="col-md-12 text-center">
-            <div id="statistics-display">
-                
-            </div>
-        </div>
+    
     <script>
         generateFretboard();
     </script>

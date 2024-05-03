@@ -91,6 +91,15 @@ class Statistics {
     reset() {
         this.correctGuessTimes = {};
     }
+
+    storeToCookie(cookieName) {
+        // stringify json
+        var json = JSON.stringify({correctGuessTimes: this.correctGuessTimes, incorrectGuesses: this.incorrectGuesses, correctGuessHeatmap: this.correctGuessHeatmap});
+        
+        // base64 encode json
+        var base64 = btoa(json);
+        document.cookie = cookieName + "=" + base64 + ";";
+    }
 }
 
 /**
@@ -182,7 +191,8 @@ function guess(string, fret) {
         guessTime.reset();
         guessCount++;
         updateGuessCounterDisplay();
-        updateStatisticsDisplay()
+        statistics.storeToCookie("find-the-tone-statistics");
+        //updateStatisticsDisplay()
         generateTone();
         console.log("Correct guess!");
     } else {
