@@ -1,106 +1,9 @@
-const HIGH_E_STRING = 0;
-const B_STRING = 1;
-const G_STRING = 2;
-const D_STRING = 3;
-const A_STRING = 4;
-const LOW_E_STRING = 5;
-
-const LAST_FRET_INDEX = 12;
-
-/**
- * What tones can be guessed. Items of this array are string and are used
- * as a keys to some following dictionaries.
- */
-const TONES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-
-/**
- * Dictionary that maps position on a fretboard to a tone.
- * 
- * The key to dictionary is a number that represents a string. 0 = high E, 1 = B, 2 = G, 3 = D, 4 = A, 5 = low E.
- * The value is a list of tones that are on that string.
- */
-const FRET_TO_TONE = {
-    0: ["E", "F", "F#", "G", "G#", "A", "A#", "B", "C", "C#", "D", "D#", "E"],
-    1: ["B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"],
-    2: ["G", "G#", "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G"],
-    3: ["D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "C", "C#", "D"],
-    4: ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A"],
-    5: ["E", "F", "F#", "G", "G#", "A", "A#", "B", "C", "C#", "D", "D#", "E"]
-};
-
 const TONE_TO_GUESS_ELEMENT_ID = "tone-to-guess";
 const FRETBOARD_ELEMENT_ID = "fretboard-table";
 const GUESS_COUNTER_ELEMENT_ID = "guess-counter";
 const GUESS_TIMER_ELEMENT_ID = "guess-timer";
 const START_STOP_BUTTON_ELEMENT_ID = "start-stop-button";
 const STATISTICS_DISPLAY_ELEMENT_ID = "statistics-display";
-
-/**
- * Class that holds statistics about player's performance.
- * 
- * Stats are held in a dictionary where key is a tone and value is a list of times in milliseconds
- * that player needed to guess that tone.
- */
-class Statistics {
-
-    constructor() {
-        this.correctGuessTimes = {};
-        this.incorrectGuesses = {};
-
-        // heatmap of correct guesses, [0] = string 0 fret 0, [1] = string 0 fret 1, ... [77] = string 5 fret 12
-        this.correctGuessHeatmap = new Array((LOW_E_STRING + 1) * (LAST_FRET_INDEX + 1)).fill(0);
-    }
-
-    addIncorrectGuess(tone) {
-        if (this.incorrectGuesses[tone] === undefined) {
-            this.incorrectGuesses[tone] = 0;
-        }
-        this.incorrectGuesses[tone]++;
-    }
-
-    addGuessTime(tone, guessTime, string, fret) {
-        if (this.correctGuessTimes[tone] === undefined) {
-            this.correctGuessTimes[tone] = [];
-        }
-
-        const fretboardIndex = this.getFretboardIndex(string, fret);
-        console.log("Adding correct guess for tone " + tone + " at index " + fretboardIndex);
-        this.correctGuessHeatmap[fretboardIndex]++;
-        this.correctGuessTimes[tone].push(guessTime);
-    }
-
-    getAverages() {
-        var averages = {};
-        for (var tone in this.correctGuessTimes) {
-            var times = this.correctGuessTimes[tone];
-            var sum = times.reduce((a, b) => a + b, 0);
-            var avg = sum / times.length;
-            averages[tone] = avg;
-        }
-        return averages;
-    }
-
-    getFretboardIndex(string, fret) {
-        return string * (LAST_FRET_INDEX+1) + fret;
-    }
-
-    print() {
-        console.log(this.correctGuessTimes);
-    }
-
-    reset() {
-        this.correctGuessTimes = {};
-    }
-
-    storeToCookie(cookieName) {
-        // stringify json
-        var json = JSON.stringify({correctGuessTimes: this.correctGuessTimes, incorrectGuesses: this.incorrectGuesses, correctGuessHeatmap: this.correctGuessHeatmap});
-        
-        // base64 encode json
-        var base64 = btoa(json);
-        document.cookie = cookieName + "=" + base64 + ";";
-    }
-}
 
 /**
  * Class that holds information about player's guess time.
@@ -191,11 +94,12 @@ function guess(string, fret) {
         guessTime.reset();
         guessCount++;
         updateGuessCounterDisplay();
-        statistics.storeToCookie("find-the-tone-statistics");
+        statistics.storeToCookie(STATISTICS_COOKIE_NAME);
         //updateStatisticsDisplay()
         generateTone();
         console.log("Correct guess!");
     } else {
+        statistics.addIncorrectGuess(toneToGuess);
         animateFret(string, fret, "incorrect-guess");
         console.log("Incorrect guess. Tone on string " + string + " and fret " + fret + " is " + toneToGuess);
     }
@@ -313,4 +217,8 @@ function startGame() {
     guessTime.reset();
     guessTimer = setInterval(timer, 1);
     switchStartStopButtonDisplay();
+}
+
+function initStatistics() {
+    statistics.loadFromCookie(STATISTICS_COOKIE_NAME);
 }
