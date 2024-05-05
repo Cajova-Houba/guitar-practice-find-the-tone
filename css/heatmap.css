@@ -1,0 +1,36 @@
+.heatmap-5 {
+    background-color: #35193e;
+    color: #cae6c1;
+    font-weight: bold;
+}
+
+.heatmap-4 {
+    background-color: #701f57;
+    color: #8fe0a8;
+    font-weight: bold;
+}
+
+.heatmap-3 {
+    background-color: #ad1759;
+    color: #52e8a6;
+    font-weight: bold;
+}
+
+.heatmap-2 {
+    background-color: #e13342;
+    color: #1eccbd;
+    font-weight: bold;
+}
+
+.heatmap-1 {
+    background-color: #f37651;
+    color: #0c89ae;
+    font-weight: bold;
+}
+
+.heatmap-0 {
+    background-color: #f6b48f;
+    color: #094b70;
+    font-weight: bold;
+}
+
