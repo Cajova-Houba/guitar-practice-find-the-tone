@@ -23,9 +23,9 @@
         <!-- display the tone to guess and controls -->
         <div class="row border-bottom mb-3 ms-2">
             <div class="col-md-2 border-end">
-                <input type="button" id="start-stop-button" class="btn btn-primary mt-1 ms-1" value="Start" onclick="startStopGame()">
+                <input type="button" id="start-stop-button" class="btn btn-primary mt-1 ms-1" value="Start" onclick="startPauseGame()">
 
-                <a href="statistics.html" class="btn btn-primary mt-1 ms-1">Statistics</a>
+                <a href="statistics.html" class="btn btn-primary mt-1 ms-1">End practice</a>
             </div>
             <div class="col-md-3 text-end">
                 <span id="guess-timer">00</span> ms
@@ -60,7 +60,6 @@
         </div>
 
         <script>
-            initStatistics();
             generateFretboard();
         </script>
     </div>

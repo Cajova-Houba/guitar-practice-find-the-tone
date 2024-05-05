@@ -5,6 +5,45 @@ const GUESS_TIMER_ELEMENT_ID = "guess-timer";
 const START_STOP_BUTTON_ELEMENT_ID = "start-stop-button";
 const STATISTICS_DISPLAY_ELEMENT_ID = "statistics-display";
 
+
+
+/**
+ * Class used to track game state.
+ * Stopped, running paused.
+ */
+class GameState {
+    /**
+     * Game states
+     */
+    PRACTICE_STOPPED = 0;
+    PRACTICE_PAUSED = 1;
+    PRACTICE_RUNNING = 2;
+
+    constructor() {
+        this.state = this.PRACTICE_STOPPED;
+    }
+
+    start() {
+        this.state = this.PRACTICE_RUNNING;
+    }
+
+    pause() {
+        this.state = this.PRACTICE_PAUSED;
+    }
+
+    stop() {
+        this.state = this.PRACTICE_STOPPED;
+    }
+
+    isStopped() {
+        return this.state === this.PRACTICE_STOPPED;
+    }
+
+    isPaused() {
+        return this.state === this.PRACTICE_PAUSED;
+    }
+}
+
 /**
  * Class that holds information about player's guess time.
  */
@@ -19,6 +58,19 @@ class GuessTime {
 
     reset() {
         this.startTime = new Date().getTime();
+    }
+
+    pause() {
+        this.pauseTime = new Date().getTime();
+    }
+
+    resume() {
+        if (this.pauseTime) {
+            this.startTime += new Date().getTime() - this.pauseTime;
+            this.pauseTime = null;
+        } else {
+            this.reset();
+        }
     }
 
     getElapsedTime() {
@@ -45,7 +97,7 @@ var guessTimer = null;
 /**
  * Inner game state
  */
-var isGameRunning = false;
+var gameState = new GameState();
 
 /**
  * Statistics about player's performance.
@@ -153,10 +205,12 @@ function updateStatisticsDisplay() {
 function switchStartStopButtonDisplay() {
     var startStopButton = document.getElementById(START_STOP_BUTTON_ELEMENT_ID);
 
-    if (isGameRunning) { 
-        startStopButton.value = "Stop";
-    } else {
+    if (gameState.isStopped()) {
         startStopButton.value = "Start";
+    } else if (gameState.isPaused()) {
+        startStopButton.value = "Resume";
+    } else {
+        startStopButton.value = "Pause";
     }
 }
 
@@ -194,31 +248,35 @@ function generateFretboard() {
 
 }
 
-function startStopGame() {
-    if (isGameRunning) {
-        stopGame();
-    } else {
+function startPauseGame() {
+    if (gameState.isStopped() || gameState.isPaused()){
         startGame();
+    } else {
+        pauseGame();
     }
 }
 
-function stopGame() {
-    isGameRunning = false;
+function pauseGame() {
+    gameState.pause();
+    guessTime.pause();
     clearInterval(guessTimer);
     switchStartStopButtonDisplay();
-    statistics.print();
 }
 
 function startGame() {
-    isGameRunning = true;
-    statistics.reset();
-    generateTone();
+
+    // if the game was stopped, reset statistics, 
+    // reset timer and generate new tone
+    // otherwise just resume the game
+    if (gameState.isStopped()) {
+        statistics.reset();
+        generateTone();
+        guessTime.reset();
+    } else {
+        guessTime.resume();
+    }
+    gameState.start(); 
     updateGuessCounterDisplay();
-    guessTime.reset();
     guessTimer = setInterval(timer, 1);
     switchStartStopButtonDisplay();
-}
-
-function initStatistics() {
-    statistics.loadFromCookie(STATISTICS_COOKIE_NAME);
 }

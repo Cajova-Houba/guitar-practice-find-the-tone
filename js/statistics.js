@@ -12,11 +12,7 @@ const STATISTICS_COOKIE_NAME = "find-the-tone-statistics";
 class Statistics {
 
     constructor() {
-        this.correctGuessTimes = {};
-        this.incorrectGuesses = {};
-
-        // heatmap of correct guesses, [0] = string 0 fret 0, [1] = string 0 fret 1, ... [77] = string 5 fret 12
-        this.correctGuessHeatmap = new Array((LOW_E_STRING + 1) * (LAST_FRET_INDEX + 1)).fill(0);
+        this.reset();
     }
 
     addIncorrectGuess(tone) {
@@ -58,6 +54,10 @@ class Statistics {
 
     reset() {
         this.correctGuessTimes = {};
+        this.incorrectGuesses = {};
+
+        // heatmap of correct guesses, [0] = string 0 fret 0, [1] = string 0 fret 1, ... [77] = string 5 fret 12
+        this.correctGuessHeatmap = new Array((LOW_E_STRING + 1) * (LAST_FRET_INDEX + 1)).fill(0);
     }
 
     storeToCookie(cookieName) {
