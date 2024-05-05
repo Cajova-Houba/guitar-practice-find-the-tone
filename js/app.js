@@ -287,6 +287,7 @@ function stopGame() {
     gameState.stop();
     clearInterval(guessTimer);
     guessTime.reset();
+    guessCount = 0;
 
     updateGuessTimerDisplay();
     updateGuessCounterDisplay();
