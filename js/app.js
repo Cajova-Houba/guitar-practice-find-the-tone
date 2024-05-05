@@ -123,7 +123,7 @@ function animateFret(string, fret, animationName) {
 
     // use animation with correct background color if fret is a marker
     if (isFretMarker(fret)) {
-        fretElement.style.animation=animationName + "-marker 1s";
+        fretElement.style.animation=animationName + "-marker 0.2s";
     } else {
         fretElement.style.animation=animationName + " 1s";
     }
