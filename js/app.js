@@ -275,8 +275,23 @@ function startGame() {
     } else {
         guessTime.resume();
     }
+    
     gameState.start(); 
-    updateGuessCounterDisplay();
     guessTimer = setInterval(timer, 1);
+    
+    updateGuessCounterDisplay();
     switchStartStopButtonDisplay();
+}
+
+function stopGame() {
+    gameState.stop();
+    clearInterval(guessTimer);
+    guessTime.reset();
+
+    updateGuessTimerDisplay();
+    updateGuessCounterDisplay();
+    switchStartStopButtonDisplay();
+
+    // redirect to stats page
+    window.location.href = "statistics.html";
 }
