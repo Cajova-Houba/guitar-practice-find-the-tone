@@ -146,8 +146,6 @@ function guess(string, fret) {
         guessTime.reset();
         guessCount++;
         updateGuessCounterDisplay();
-        statistics.storeToCookie(STATISTICS_COOKIE_NAME);
-        //updateStatisticsDisplay()
         generateTone();
         console.log("Correct guess!");
     } else {
@@ -155,6 +153,8 @@ function guess(string, fret) {
         animateFret(string, fret, "incorrect-guess");
         console.log("Incorrect guess. Tone on string " + string + " and fret " + fret + " is " + toneToGuess);
     }
+
+    statistics.storeToCookie(STATISTICS_COOKIE_NAME);
 }
 
 /**

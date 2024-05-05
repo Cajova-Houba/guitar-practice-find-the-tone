@@ -1,37 +1,30 @@
-const GUESS_TIMES_TABLE_ELEMENT_ID = "guess-times-table";
-const INCORRECT_GUESSES_TABLE_ELEMENT_ID = "incorrect-guesses-table";
+const GUESS_STATISTICS_TABLE_ELEMENT_ID = "guess-statistics-table";
 
-const TIME_FORMAT = new Intl.NumberFormat('cz-CZ', { style: 'decimal', maximumFractionDigits: 2, minimumFractionDigits: 2 });
+const DECIMAL_NUMBER_FORMAT = new Intl.NumberFormat('cz-CZ', { style: 'decimal', maximumFractionDigits: 2, minimumFractionDigits: 2 });
 
 var statistics = new Statistics();
 
 function initStatisticsDisplay() {
     statistics.loadFromCookie(STATISTICS_COOKIE_NAME);
 
-    renderGuessTimesTable();
-    renderIncorrectGuessesTable();
+    renderGuessStatisticsTable();
 }
 
-function renderGuessTimesTable() {
-    var table = document.getElementById(GUESS_TIMES_TABLE_ELEMENT_ID);
-    var averages = statistics.getAverages();
-    for (var tone in averages) {
+function renderGuessStatisticsTable() {
+    var table = document.getElementById(GUESS_STATISTICS_TABLE_ELEMENT_ID);
+    var guessStats = statistics.getGuessStatistics();
+
+    for (var tone in guessStats) {
+        const toneStats = guessStats[tone];
+
         var row = table.insertRow(-1);
         var toneCell = row.insertCell(0);
         var timeCell = row.insertCell(1);
+        var countCell = row.insertCell(2);
+        var correctCell = row.insertCell(3);
         toneCell.innerHTML = tone;
-        timeCell.innerHTML = TIME_FORMAT.format(averages[tone]);
-    }
-}
-
-function renderIncorrectGuessesTable() {
-    var table = document.getElementById(INCORRECT_GUESSES_TABLE_ELEMENT_ID);
-    var incorrectGuesses = statistics.incorrectGuesses;
-    for (var tone in incorrectGuesses) {
-        var row = table.insertRow(-1);
-        var toneCell = row.insertCell(0);
-        var countCell = row.insertCell(1);
-        toneCell.innerHTML = tone;
-        countCell.innerHTML = incorrectGuesses[tone];
+        timeCell.innerHTML = DECIMAL_NUMBER_FORMAT.format(toneStats["avg"]);
+        countCell.innerHTML = toneStats["count"];
+        correctCell.innerHTML = DECIMAL_NUMBER_FORMAT.format(toneStats["correct"]*100)+" %";
     }
 }
