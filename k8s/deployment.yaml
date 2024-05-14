@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: find-the-tone-deployment
+  labels:
+    app: find-the-tone
+
+spec:
+  selector:
+    matchLabels:
+      app: find-the-tone
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 100
+  template:
+    metadata:
+      labels:
+        app: find-the-tone
+    spec:
+      containers:
+        - name: find-the-tone
+          image: TODO
+          ports:
+            - containerPort: 3000
