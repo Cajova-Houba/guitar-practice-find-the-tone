@@ -21,6 +21,6 @@ spec:
     spec:
       containers:
         - name: find-the-tone
-          image: TODO
+          image: docker.io/cajovahouba/find-the-tone:latest
           ports:
             - containerPort: 3000
