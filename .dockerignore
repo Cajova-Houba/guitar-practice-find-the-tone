@@ -1,3 +1,4 @@
 Dockerfile
 readme.md
 k8s/
+.image_tag
