@@ -1,0 +1,27 @@
+<!-- html template -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Find the tone</title>
+
+    <!-- include custom app.css -->
+    <link rel="stylesheet" type="text/css" href="css/app.css">
+    <link rel="stylesheet" type="text/css" href="css/animate.css">
+
+    <!-- add bootstrap 5 css -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container">
+        <canvas class="visualizer" width="640" height="100"></canvas>
+        <h1 id="tone">0 Hz</h1>
+
+        <div class="row">
+            <input type="range" id="inputThreshold" name="inputThreshold" min="0" max="255" value="50"/>
+            <label for="inputThreshold">Input threshold</label>
+        </div>
+    </div>
+
+    <script src="js/app2.js"></script>
+</body>

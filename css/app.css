@@ -3,6 +3,14 @@
     font-size: 120px;
 }
 
+.right-tone {
+    color: green;
+}
+
+.wrong-tone {
+    color: red;
+}
+
 .fretboard {
     display: flex;
     justify-content: center;

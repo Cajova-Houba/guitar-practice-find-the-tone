@@ -1,11 +1,15 @@
 const TONE_TO_GUESS_ELEMENT_ID = "tone-to-guess";
+const YOUR_TONE_ELEMENT_ID = "your-tone";
 const FRETBOARD_ELEMENT_ID = "fretboard-table";
 const GUESS_COUNTER_ELEMENT_ID = "guess-counter";
 const GUESS_TIMER_ELEMENT_ID = "guess-timer";
 const START_STOP_BUTTON_ELEMENT_ID = "start-stop-button";
 const STATISTICS_DISPLAY_ELEMENT_ID = "statistics-display";
 
-
+/**
+ * 0 - 255
+ */
+const DEFAULT_AUDIO_INPUT_THRESHOLD = 150;
 
 /**
  * Class used to track game state.
@@ -42,6 +46,10 @@ class GameState {
     isPaused() {
         return this.state === this.PRACTICE_PAUSED;
     }
+
+    isRunning() {
+        return this.state === this.PRACTICE_RUNNING;
+    }
 }
 
 /**
@@ -77,6 +85,16 @@ class GuessTime {
         return new Date().getTime() - this.startTime;
     }
 }
+
+/**
+ * For audio input, see initAudio();
+ */
+var audioCtx;
+var audioAnalyser;
+var audioBufferLength;
+var audioDataArray;
+var audioGuessSamples = null;
+var audioHandlerState = "idle";
 
 /**
  * Which tone player should guess.
@@ -136,22 +154,51 @@ function animateFret(string, fret, animationName) {
     }, 1000);
 }
 
+function displayRightTone(tone, octave) {
+    document.getElementById(YOUR_TONE_ELEMENT_ID).innerText = `${tone}${octave}`;
+    document.getElementById(YOUR_TONE_ELEMENT_ID).classList.add("right-tone");
+    document.getElementById(YOUR_TONE_ELEMENT_ID).classList.remove("wrong-tone");
+}
+
+function displayWrongTone(tone, octave) {
+    document.getElementById(YOUR_TONE_ELEMENT_ID).innerText = `${tone}${octave}`;
+    document.getElementById(YOUR_TONE_ELEMENT_ID).classList.remove("right-tone");
+    document.getElementById(YOUR_TONE_ELEMENT_ID).classList.add("wrong-tone");
+}
+
 /**
  * Check if player's guess is correct, display result and generate new tone to guess.
  */ 
 function guess(string, fret) {
-    if (checkGuess(string, fret)) {
-        animateFret(string, fret, "correct-guess");
-        statistics.addGuessTime(toneToGuess, guessTime.getElapsedTime(), string, fret);
+    var tonesOnString = FRET_TO_TONE[string];
+    var toneOnFret = tonesOnString[fret];
+
+    evaluateGuess(toneOnFret, null, () => {animateFret(string, fret, "correct-guess")}, () => {animateFret(string, fret, "incorrect-guess")});
+}
+
+/**
+ * Actual logic for evaluating player's guess.
+ * 
+ * @param {string} tone Tone player has guessed.
+ * @param {number} octave (Optional) Octave of the tone player has guessed.
+ * @param {function} onCorrectCallback (Optional) Callback to execute when player's guess is correct.
+ * @param {function} onWrongCallback (Optional) Callback to execute when player's guess is wrong.
+ */
+function evaluateGuess(tone, octave, onCorrectCallback, onWrongCallback) {
+    if (tone === toneToGuess) {
+        onCorrectCallback && onCorrectCallback();
+        displayRightTone(tone, octave);
+        statistics.addGuessTime(toneToGuess, guessTime.getElapsedTime(), 0, 0);
         guessTime.reset();
         guessCount++;
         updateGuessCounterDisplay();
         generateTone();
         console.log("Correct guess!");
     } else {
+        onWrongCallback && onWrongCallback();
+        displayWrongTone(tone, octave);
         statistics.addIncorrectGuess(toneToGuess);
-        animateFret(string, fret, "incorrect-guess");
-        console.log("Incorrect guess. Tone on string " + string + " and fret " + fret + " is " + toneToGuess);
+        console.log("Incorrect guess. Guessed: " + tone + ", correct: " + toneToGuess);
     }
 
     statistics.storeToCookie(STATISTICS_COOKIE_NAME);
@@ -295,4 +342,150 @@ function stopGame() {
 
     // redirect to stats page
     window.location.href = "statistics.html";
+}
+
+function getAudioInputThreshold() {
+    // todo: add input range element and return its value instead
+    return DEFAULT_AUDIO_INPUT_THRESHOLD;
+}
+
+function initAudio() {
+    audioCtx = new AudioContext();
+    console.log("AudioContext: ", audioCtx);
+    console.log("Sample Rate: ", audioCtx.sampleRate);
+    
+    audioAnalyser = audioCtx.createAnalyser();
+    audioAnalyser.fftSize = 2048;
+    console.log("Analyser: ", audioAnalyser);
+
+    audioBufferLength = audioAnalyser.frequencyBinCount;
+    audioDataArray = new Uint8Array(audioBufferLength);
+
+    const constraints = { audio: true };
+    navigator.mediaDevices
+    .getUserMedia(constraints)
+    .then((stream) => {
+        source = audioCtx.createMediaStreamSource(stream);
+        source.connect(audioAnalyser);
+
+        audioInputHandler();
+    })
+    .catch(function (err) {
+        console.error("The following gUM error occured: " + err);
+    });
+}
+
+function filterFreqData(rawFrequencyData, rawFrequencyDataLen, threshold) {
+    const filteredData = new Uint8Array(rawFrequencyDataLen);
+    for (let i = 0; i < rawFrequencyDataLen; i++) {
+        if (rawFrequencyData[i] > threshold) {
+            filteredData[i] = rawFrequencyData[i];
+        } else {
+            filteredData[i] = 0;
+        }
+    }
+    return filteredData;
+}
+
+/**
+ * Use the TONE_FREQ_CHART to determine the tone by frequency.
+ * 
+ * @param {float} freq 
+ */
+function findToneByFreq(freq) {
+    
+    for (const toneKey in TONE_FREQ_CHART) {
+        for (let octave = 0; octave < 9; octave++) {
+            const toneFreqs = TONE_FREQ_CHART[toneKey];
+            // upper bound
+            const b1 = toneFreqs[octave] + toneFreqs[octave] * MAX_TONE_DIFF;
+            // lower bound
+            const b0 = toneFreqs[octave] - toneFreqs[octave] * MAX_TONE_DIFF;
+            if (freq >= b0 && freq <= b1) {
+                return [toneKey, octave];
+            }
+        }
+    }
+
+    return [];
+}
+
+function audioInputHandler() {
+    requestAnimationFrame(audioInputHandler);
+
+    let threshold, filteredData, anyAudio;
+    // simple state machine to handle audio input and guesses
+    switch (audioHandlerState) {
+        case "idle":
+            if (gameState.isRunning()) {
+                audioHandlerState = "listenAudio";
+            }
+            break;
+
+        case "listenAudio":
+            if (!gameState.isRunning()) {
+                audioHandlerState = "idle";
+            } else {
+                threshold = getAudioInputThreshold();
+                audioAnalyser.getByteFrequencyData(audioDataArray);
+                filteredData = filterFreqData(audioDataArray, audioBufferLength, threshold);
+                anyAudio = filteredData.some((value) => value > 0);
+                
+                if (!anyAudio) {
+                    audioHandlerState = "listenAudio";
+                } else {
+                    audioHandlerState = "startGuess";
+                }
+            }
+            break;
+        
+        case "startGuess":
+            audioGuessSamples = [];
+            audioHandlerState = "collectGuessSamples";
+            break;
+        
+        case "collectGuessSamples":
+            threshold = getAudioInputThreshold();
+            audioAnalyser.getByteFrequencyData(audioDataArray);
+            filteredData = filterFreqData(audioDataArray, audioBufferLength, threshold);
+            anyAudio = filteredData.some((value) => value > 0);
+
+            if (!anyAudio) {
+                audioHandlerState = "endGuess";
+            } else {
+                // select the largest frequency
+                let largestFreqId = -1;
+                for (let i = 0; i < audioBufferLength; i++) {
+                    const frequencyAmount = filteredData[i];
+
+                    if (frequencyAmount > filteredData[largestFreqId] || largestFreqId == -1) {
+                        largestFreqId = i;
+                    }
+                }
+
+                if (largestFreqId != -1) {
+                    audioGuessSamples.push(largestFreqId * audioCtx.sampleRate / audioAnalyser.fftSize);
+                }
+            }
+            break;
+        
+        case "endGuess":
+            // average the samples
+            const sum = audioGuessSamples.reduce((a, b) => a + b, 0);
+            const avgFreq = sum / audioGuessSamples.length;
+            const [tone, octave] = findToneByFreq(avgFreq);
+            audioGuessSamples = [];
+
+            // if the game is not running, go back to idle state and do not evaluate the guess
+            if (!gameState.isRunning()) {
+                audioHandlerState = "idle";
+            } else {
+                // evaluate the guess
+                evaluateGuess(tone, octave);
+                audioHandlerState = "listenAudio";
+            }
+
+            break;
+    }
+
 }

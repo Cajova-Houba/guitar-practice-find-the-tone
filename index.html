@@ -20,9 +20,9 @@
 <body>
     <div class="container">
 
-        <!-- display the tone to guess and controls -->
-        <div class="row border-bottom mb-3 ms-2">
-            <div class="col-md-2 border-end">
+        <!-- display controls, time and statistics -->
+        <div class="row ms-2">
+            <div class="col-md-3">
                 <input type="button" id="start-stop-button" class="btn btn-primary mt-1 ms-1" value="Start" onclick="startPauseGame()">
 
                 <button class="btn btn-primary mt-1 ms-1" onclick="stopGame()">End practice</button>
@@ -30,20 +30,29 @@
             <div class="col-md-3 text-end">
                 <span id="guess-timer">00</span> ms
             </div>
-            <div class="col-md-2 text-center">
-                <div class="row">
-                    <div class="col-12">
-                        Guess the tone...
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-12">
-                        <span id="tone-to-guess" class="tone-to-guess">E</span>
-                    </div>
-                </div>
-            </div>
             <div class="col-md-5">
                 Tones guessed <span id="guess-counter"></span>
+            </div>
+        </div>
+
+        <!--  display the tone to guess  -->
+        <div class="row border-bottom mb-3 ms-2 text-center">
+            <div class="col-4"></div>
+            <div class="col-2">
+                Guess the tone...
+            </div>
+            <div class="col-2">
+            </div>
+            <div class="col-4"></div>
+            <div class="row">
+                <div class="col-4"></div>
+                <div class="col-2">
+                    <span id="tone-to-guess" class="tone-to-guess">E</span>
+                </div>
+                <div class="col-2 border-top border-start border-end">
+                    <span id="your-tone" class="tone-to-guess"></span>
+                </div>
+                <div class="col-4"></div>
             </div>
         </div>
 
@@ -67,6 +76,7 @@
         </footer>
         <script>
             generateFretboard();
+            initAudio();
         </script>
     </div>
 </body>
