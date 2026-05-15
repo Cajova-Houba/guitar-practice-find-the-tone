@@ -1,3 +1,8 @@
+const MIN_OCTAVE = 0;
+const MAX_OCTAVE = 8;
+
+const TONE_NAME_LOOKUP = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
 // frequencies for each from from C to B over 9 octaves
 // https://mixbutton.com/mixing-articles/music-note-to-frequency-chart/
 const TONE_FREQ_CHART = {
@@ -13,6 +18,11 @@ const TONE_FREQ_CHART = {
     "A": [27.50, 55.00, 110.00, 220.00, 440.00, 880.00, 1760.00, 3520.00, 7040.00],
     "A#": [29.14, 58.27, 116.54, 233.08, 466.16, 932.33, 1864.66, 3729.31, 7458.62],
     "B": [30.87, 61.74, 123.47, 246.94, 493.88, 987.77, 1975.53, 3951.07, 7902.13],
+}
+
+const SCALE_PATTERNS = {
+    "major": [0, 2, 4, 5, 7, 9, 11],
+    "minor": [0, 2, 3, 5, 7, 8, 10],
 }
 
 const D_TONE_FREQ = [
@@ -67,6 +77,126 @@ function filterFreqData(rawFrequencyData, rawFrequencyDataLen, threshold) {
         }
     }
     return filteredData;
+}
+
+function onScaleSettingsChange(event) {
+    // get value selected from baseTone dropdown
+    const baseTone = document.getElementById("baseTone").value;
+
+    // get value selected from the scale dropdown
+    const scaleName = document.getElementById("scale").value;
+
+    // ensure both baseTone and scaleName are ok
+    if (baseTone == "" || scaleName == "") {
+        console.log("Empty inputs");
+        return;
+    }
+
+    if (TONE_NAME_LOOKUP.indexOf(baseTone) == -1) {
+        console.log(`Unknown base tone: ${baseTone}`);
+        return;
+    }
+
+    if (Object.keys(SCALE_PATTERNS).indexOf(scaleName) == -1) {
+        console.log(`Unknown scale: ${scaleName}`);
+        return;
+    }
+
+    console.log(`Generating scale "${scaleName}" for base tone "${baseTone}"`);
+    const scalePattern = SCALE_PATTERNS[scaleName];
+    const scaleFreqs = generateScaleFrequencyChart(scalePattern, baseTone);
+    console.log("Scale frequencies: ", scaleFreqs);
+}
+
+/**
+ * Generate a table of frequencies for the given scale pattern across all octaves
+ * in TONE_FREQ_CHART.
+ * 
+ * @param {array} scalePattern 
+ * @param {string} toneKey 
+ */
+function generateScaleFrequencyChart(scalePattern, toneKey) {
+    // start by finding the tones we're looking for, without considering the octaves
+    let toneLookupIndex = TONE_NAME_LOOKUP.indexOf(toneKey);
+    const scaleTones = [];
+
+    for (let i = 0; i < scalePattern.length; i++) {
+        const p = scalePattern[i];
+        scaleTones.push(TONE_NAME_LOOKUP[(toneLookupIndex + p) % TONE_NAME_LOOKUP.length]);
+    }
+
+    // now we have the tones, we can generate the frequencies for each octave
+    const scaleFreqs = [];
+    for (let octave = MIN_OCTAVE; octave < MAX_OCTAVE; octave++) {
+        for (let i = 0; i < scaleTones.length; i++) {
+            const toneFreq = TONE_FREQ_CHART[scaleTones[i]][octave];
+            scaleFreqs.push(toneFreq);
+        }
+    }
+
+    // finally, ensure the order the scaleFreqs from lowest to highest
+    scaleFreqs.sort((a, b) => a[0] - b[0]);
+
+    return scaleFreqs;
+}
+
+/**
+ * Match the frequency against the TONE_FREQ_CHART and select the closest one.
+ * @param {} frequency Frequency to match.
+ */
+function matchPitchClosest(frequency) {
+    let minDiffSq = -1;
+    let minToneKey = -1;
+    let minOctave = -1;
+
+    for (const toneKey in TONE_FREQ_CHART) {
+        for (let octave = 0; octave < 9; octave++) {
+            // tone frequency we're matching against
+            const toneFreq = TONE_FREQ_CHART[toneKey][octave];
+
+            // difference
+            const diff = toneFreq - frequency;
+            const diffSq = diff * diff;
+
+            // new minimum found
+            if (minDiffSq == -1 || diffSq < minDiffSq) {
+                minDiffSq = diffSq;
+                minToneKey = toneKey;
+                minOctave = octave;
+            }
+        }
+    }
+
+    return { toneKey: minToneKey, octave: minOctave };
+}
+
+/**
+ * Tries to match the frequency against the TONE_FREQ_CHART.
+ * The frequency matches the given tone if it's within the
+ * +-tone*delta boundaries.
+ * 
+ * @param {double} frequency 
+ * @param {double} delta, expected to be <<1
+ */
+function matchPitchBoundaries(frequency, delta) {
+    let minToneKey = -1;
+    let minOctave = -1;
+
+    for (const toneKey in TONE_FREQ_CHART) {
+        for (let octave = 0; octave < 9; octave++) {
+            const toneFreqs = TONE_FREQ_CHART[toneKey];
+            // upper bound
+            const b1 = toneFreqs[octave] + toneFreqs[octave] * delta;
+            // lower bound
+            const b0 = toneFreqs[octave] - toneFreqs[octave] * delta;
+            if (frequency >= b0 && frequency <= b1) {
+                minToneKey = toneKey;
+                minOctave = octave;
+            }
+        }
+    }
+
+    return { toneKey: minToneKey, octave: minOctave };
 }
 
 function visualize() {
@@ -169,20 +299,13 @@ function visualize() {
 
             if (largestFreqId != -1) {
                 const toneFreq = largestFreqId * audioCtx.sampleRate / analyser.fftSize;
+                // const toneMatch = matchPitchClosest(toneFreq);
+                const toneMatch = matchPitchBoundaries(toneFreq, TONE_D);
                 let tone = "";
-    
-                for (const toneKey in TONE_FREQ_CHART) {
-                    for (let octave = 0; octave < 9; octave++) {
-                        const toneFreqs = TONE_FREQ_CHART[toneKey];
-                        // upper bound
-                        const b1 = toneFreqs[octave] + toneFreqs[octave] * TONE_D;
-                        // lower bound
-                        const b0 = toneFreqs[octave] - toneFreqs[octave] * TONE_D;
-                        if (toneFreq >= b0 && toneFreq <= b1) {
-                            tone = toneKey + octave;
-                        }
-                    }
+                if (toneMatch["octave"] != -1) {
+                    tone = toneMatch["toneKey"] + toneMatch["octave"];
                 }
+                
 
                 document.getElementById("tone").innerHTML = largestFreqId * audioCtx.sampleRate / analyser.fftSize + " Hz   "+ tone;
             } else {

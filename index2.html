@@ -21,6 +21,34 @@
             <input type="range" id="inputThreshold" name="inputThreshold" min="0" max="255" value="50"/>
             <label for="inputThreshold">Input threshold</label>
         </div>
+        <div class="row">
+            <div class="col">
+                <label for="baseTone">Base Tone</label>
+                <select id="baseTone" class="form-select" onchange="onScaleSettingsChange()">
+                    <option selected value="C">C</option>
+                    <option value="C#">C#</option>
+                    <option value="D">D</option>
+                    <option value="D#">D#</option>
+                    <option value="E">E</option>
+                    <option value="F">F</option>
+                    <option value="F#">F#</option>
+                    <option value="G">G</option>
+                    <option value="G#">G#</option>
+                    <option value="A">A</option>
+                    <option value="A#">A#</option>
+                    <option value="B">B</option>
+                </select>
+            </div>
+
+            <div class="col">
+                <label for="scale">Scale</label>
+                <select id="scale" class="form-select" onchange="onScaleSettingsChange()">
+                    <option selected value="major">Major</option>
+                    <option value="minor">Minor</option>
+                </select>
+            </div>
+
+        </div>
     </div>
 
     <script src="js/app2.js"></script>
